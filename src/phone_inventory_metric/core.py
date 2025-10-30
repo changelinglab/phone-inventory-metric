@@ -25,19 +25,19 @@ def _preprocess_sets(
 
 def get_set_f1_score(
     ref: Iterable[object], target: Iterable[object], search_max=False
-) -> float:
+) -> tuple[float, float, float]:
     ref, target = _preprocess_sets(ref, target)
     if len(ref) == 0 or len(target) == 0:
-        return float("nan")
+        return float("nan"), float("nan"), float("nan")
 
-    def _f1(target: Iterable[object]) -> float:
+    def _f1(target: Iterable[object]) -> tuple[float, float, float]:
         target = frozenset(target)
         intersection = ref & target
         precision = len(intersection) / len(target)
         recall = len(intersection) / len(ref)
         if precision == 0 or recall == 0:
-            return float("nan")
-        return 2 / (1 / precision + 1 / recall)
+            return float("nan"), float("nan"), float("nan")
+        return 2 / (1 / precision + 1 / recall), precision, recall
 
     if not search_max:
         return _f1(target)
@@ -50,7 +50,7 @@ def get_set_f1_score_featured(
     target: Iterable[str],
     search_max: bool = False,
     exclusive: bool = False,
-) -> float:
+) -> tuple[float, float, float]:
     ensure_unique(ref)
     ensure_unique(target)
 
@@ -60,9 +60,9 @@ def get_set_f1_score_featured(
     other_segs = feature_table.word_fts("".join(target))
 
     if len(ref_segs) == 0 or len(other_segs) == 0:
-        return float("nan")
+        return float("nan"), float("nan"), float("nan")
 
-    def _f1(oss: list[panphon.segment.Segment]) -> float:
+    def _f1(oss: list[panphon.segment.Segment]) -> tuple[float, float, float]:
         sim_matrix = np.array(
             [[1 - os.norm_hamming_distance(rs) for os in oss] for rs in ref_segs]
         )
@@ -76,8 +76,8 @@ def get_set_f1_score_featured(
         recall = sim_matrix.max(-1).mean()
 
         if precision == 0 or recall == 0:
-            return float("nan")
-        return 2 / (1 / precision + 1 / recall)
+            return float("nan"), float("nan"), float("nan")
+        return 2 / (1 / precision + 1 / recall), precision, recall
 
     if not search_max:
         return _f1(other_segs)
@@ -96,19 +96,25 @@ def get_metrics(
     results: setkeydict[float] = setkeydict()
     ref_set = tokenize_corpus(ref)
     target_set = tokenize_corpus(target)
-    results["f1_score"] = get_set_f1_score(ref_set, target_set)
+
+    def _update(keys: tuple[str, ...], scores: tuple[float, float, float]) -> None:
+        for metric, score in zip(["f1_score", "precision", "recall"], scores):
+            results[*keys, metric] = score
+
+    rt_args = ref_set, target_set
+    _update(tuple(), get_set_f1_score(*rt_args))
+    _update(("features",), get_set_f1_score_featured(*rt_args))
+    _update(
+        ("exclusive", "featured"), get_set_f1_score_featured(*rt_args, exclusive=True)
+    )
+
     if search_max:
-        results["f1_score", "max"] = get_set_f1_score(
-            ref_set, target_set, search_max=True
+        _update(("max",), get_set_f1_score(*rt_args, search_max=True))
+        _update(
+            ("max", "featured"), get_set_f1_score_featured(*rt_args, search_max=True)
         )
-        results["f1_score", "exclusive", "max", "featured"] = get_set_f1_score_featured(
-            ref_set, target_set, exclusive=True, search_max=True
+        _update(
+            ("exclusive", "max", "featured"),
+            get_set_f1_score_featured(*rt_args, exclusive=True, search_max=True),
         )
-    results["f1_score", "featured"] = get_set_f1_score_featured(ref_set, target_set)
-    results["f1_score", "featured", "max"] = get_set_f1_score_featured(
-        ref_set, target_set, search_max=search_max
-    )
-    results["f1_score", "exclusive", "featured"] = get_set_f1_score_featured(
-        ref_set, target_set, exclusive=True
-    )
     return results

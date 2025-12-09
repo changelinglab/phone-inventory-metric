@@ -99,7 +99,7 @@ def get_metrics(
 
     def _update(keys: tuple[str, ...], scores: tuple[float, float, float]) -> None:
         for metric, score in zip(["f1_score", "precision", "recall"], scores):
-            results[*keys, metric] = score
+            results[keys + (metric,)] = score
 
     rt_args = ref_set, target_set
     _update(tuple(), get_set_f1_score(*rt_args))

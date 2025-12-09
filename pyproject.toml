@@ -21,8 +21,13 @@ dev = [
     "isort>=6.0.1",
     "mypy>=1.18.2",
     "pyright[nodejs]>=1.1.405",
+    "pytest>=9.0.2",
     "ruff>=0.13.1",
 ]
 
 [tool.mypy]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]

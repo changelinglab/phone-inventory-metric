@@ -7,7 +7,7 @@ import panphon  # type: ignore[import-not-found]
 import scipy
 from ipatok import tokenise  # type: ignore[import-untyped]
 
-from src.phone_inventory_metric.common import setkeydict
+from phone_inventory_metric.common import setkeydict
 
 
 def ensure_unique(x: Iterable) -> None:

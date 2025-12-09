@@ -103,7 +103,7 @@ def get_metrics(
 
     rt_args = ref_set, target_set
     _update(tuple(), get_set_f1_score(*rt_args))
-    _update(("features",), get_set_f1_score_featured(*rt_args))
+    _update(("featured",), get_set_f1_score_featured(*rt_args))
     _update(
         ("exclusive", "featured"), get_set_f1_score_featured(*rt_args, exclusive=True)
     )

@@ -23,3 +23,6 @@ dev = [
     "pyright[nodejs]>=1.1.405",
     "ruff>=0.13.1",
 ]
+
+[tool.mypy]
+ignore_missing_imports = true

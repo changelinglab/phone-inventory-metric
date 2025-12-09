@@ -1,11 +1,11 @@
 [project]
 name = "phone-inventory-metric"
-version = "0.2.3"
+version = "0.2.4"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "ipatok>=0.4.2",
+    "ipatok==0.1.0",
     "panphon>=0.22.2",
     "scipy>=1.15",
     "scipy-stubs>=1.15",

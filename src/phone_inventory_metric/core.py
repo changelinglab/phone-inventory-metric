@@ -15,6 +15,10 @@ def ensure_unique(x: Iterable) -> None:
         raise ValueError("Collection has non-unique elements.")
 
 
+def max_nan_safe(xs: list[tuple[float, float, float]]) -> tuple[float, float, float]:
+    return xs[np.lexsort(np.nan_to_num(xs, nan=-1).T)[-1]]
+
+
 def _preprocess_sets(
     ref: Iterable[object], target: Iterable[object]
 ) -> tuple[frozenset[object], list[object]]:
@@ -42,7 +46,7 @@ def get_set_f1_score(
     if not search_max:
         return _f1(target)
     else:
-        return max(_f1(target[: i + 1]) for i in range(len(target)))
+        return max_nan_safe([_f1(target[: i + 1]) for i in range(len(target))])
 
 
 def get_set_f1_score_featured(
@@ -82,7 +86,7 @@ def get_set_f1_score_featured(
     if not search_max:
         return _f1(other_segs)
     else:
-        return max(_f1(other_segs[: i + 1]) for i in range(len(other_segs)))
+        return max_nan_safe([_f1(other_segs[: i + 1]) for i in range(len(other_segs))])
 
 
 def tokenize_corpus(corpus: Iterable[str]) -> list[str]:
